@@ -854,8 +854,34 @@ module.exports = (
           host: dotenv.raw.HOST,
           port: devServerPort,
         };
-        // If the major version is > 3, then use the newer configuration notation
-        if (devServerMajorVersion > 3) {
+        // If the major version is > 4, then use the newer configuration notation
+        if (devServerMajorVersion > 4) {
+          // See https://github.com/webpack/webpack-dev-server/blob/master/migration-v5.md for how this was migrated
+          config.devServer = Object.assign(config.devServer, {
+            allowedHosts: 'all',
+            client: {
+              logging: 'none', // Enable gzip compression of generated files.
+              overlay: false,
+            },
+            devMiddleware: { 
+              publicPath: clientPublicPath,
+            },
+            static: {
+              // Reportedly, this avoids CPU overload on some systems.
+              // https://github.com/facebookincubator/create-react-app/issues/293
+              watch: { ignored: /node_modules/ },
+            },
+            setupMiddlewares: (middlewares, devServer) => {
+              // This lets us open files from the runtime error overlay.
+              middlewares.unshift({
+                name: 'errorOverlayMiddleware',
+                middleware: errorOverlayMiddleware(),
+              });
+
+              return middlewares;
+            },
+          });
+        } else if (devServerMajorVersion > 3) {
           // See https://github.com/webpack/webpack-dev-server/blob/master/migration-v4.md for how this was migrated
           config.devServer = Object.assign(config.devServer, {
             allowedHosts: 'all',
