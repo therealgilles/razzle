@@ -178,10 +178,17 @@ function main() {
             if (!serverOnly) {
               // Create a new instance of Webpack-dev-server for our client assets.
               // This will actually run on a different port than the users app.
-              clientDevServer = new devServer(
-                clientCompiler,
-                Object.assign(clientConfig.devServer, { verbose, port }),
-              );
+              if (devServerMajorVersion > 3) {
+                clientDevServer = new devServer(
+                  Object.assign(clientConfig.devServer, { port }),
+                  clientCompiler,
+                );
+              } else {
+                clientDevServer = new devServer(
+                  clientCompiler,
+                  Object.assign(clientConfig.devServer, { verbose, port }),
+                );
+              }
               if (devServerMajorVersion > 3) {
                 // listen was deprecated in v4 and causes issues when used, switch to its replacement
                 clientDevServer.startCallback(errorLogger);
